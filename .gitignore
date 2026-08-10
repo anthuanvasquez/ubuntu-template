@@ -1,0 +1,7 @@
+*.iso
+
+# windows files
+*.exe
+*.logß
+.DS_Store
+.thumbs.db
