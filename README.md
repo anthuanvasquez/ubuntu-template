@@ -25,9 +25,12 @@ A VirtualBox-based workflow to create a golden Ubuntu Server image and spin up c
 
 ---
 
-## Step 1 — Install VirtualBox
+## Step 1 — Install VirtualBox & Download Ubuntu
 
-Download and install VirtualBox: https://www.virtualbox.org/wiki/Downloads
+- Download and install VirtualBox: https://www.virtualbox.org/wiki/Downloads
+
+- Download Ubuntu Server 24 LTS: https://ubuntu.com/download/server  
+  **Place the ISO in this directory.** `server.ps1` expects it as `ubuntu-24.04.4-live-server-amd64.iso`.
 
 ---
 
@@ -42,8 +45,14 @@ VBoxManage list bridgedifs
 Edit `server.ps1` and replace `[REPLACE-WITH-YOUR-NETWORK-INTERFACE]` with the name from the output above, then run it:
 
 ```powershell
+# Default name: "ubuntu-template"
 .\server.ps1
+
+# Custom name
+.\server.ps1 -Name "my-base-vm"
 ```
+
+The script creates the VM, attaches the VDI disk, and mounts the ISO. The VDI filename matches the `-Name` value.
 
 ---
 
@@ -52,7 +61,7 @@ Edit `server.ps1` and replace `[REPLACE-WITH-YOUR-NETWORK-INTERFACE]` with the n
 Boot the VM and follow the Ubuntu installer:
 
 ```sh
-VBoxManage startvm "ubuntu-template" --type gui
+VBoxManage startvm "<name>" --type gui
 ```
 
 Key settings during installation:
@@ -63,7 +72,7 @@ Key settings during installation:
 After installation, eject the virtual ISO:
 
 ```sh
-VBoxManage storageattach "ubuntu-template" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium none
+VBoxManage storageattach "<name>" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium none
 ```
 
 ---
@@ -88,7 +97,7 @@ ssh ubuntu@<VM_IP> "bash ~/init.sh"
 ## Step 5 — Take a Golden Snapshot
 
 ```sh
-VBoxManage snapshot "ubuntu-template" take "clean-install" \
+VBoxManage snapshot "<name>" take "clean-install" \
   --description "Golden image: Ubuntu Server 24 + SSH + user + base tools"
 ```
 
@@ -111,7 +120,7 @@ It runs in order:
 ### Creating a new clone manually
 
 ```sh
-VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-prod" --register
+VBoxManage clonevm "<name>" --snapshot "clean-install" --options link --name "vps-prod" --register
 VBoxManage startvm "vps-prod" --type headless
 ./vps-provision.sh <IP> <user>
 ```
