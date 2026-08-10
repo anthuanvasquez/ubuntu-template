@@ -11,10 +11,10 @@ $ISO = "ubuntu-24.04.4-live-server-amd64.iso"
 # 1. Create and register the VM
 VBoxManage createvm --name "$Name" --ostype "Ubuntu_64" --register
 
-# 2. Configure hardware
+# 2. Configure hardware (2GB RAM, 2 CPUs, bridged network, boot from DVD first)
 VBoxManage modifyvm "$Name" `
-  --memory 2048 `       # 2GB RAM
-  --cpus 2 `            # 2 CPU cores
+  --memory 2048 `
+  --cpus 2 `
   --nic1 bridged --bridgeadapter1 "[REPLACE-WITH-YOUR-NETWORK-INTERFACE]" `
   --graphicscontroller vmsvga `
   --boot1 dvd --boot2 disk
