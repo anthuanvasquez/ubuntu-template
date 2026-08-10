@@ -1,72 +1,127 @@
 # Ubuntu Server Template
 
-## VBox
+A VirtualBox-based workflow to create a golden Ubuntu Server image and spin up cloned VPS instances with Docker ready to go.
 
-Download VirtualBox to handle this project and create the `ubuntu-template` base linux image.
+## Overview
 
-https://www.virtualbox.org/wiki/Downloads
+```
+[server.ps1] → Create VM → Install Ubuntu → [init.sh] → Snapshot
+                                                            ↓
+                                          Clone → [vps-provision.sh]
+                                                    ↓           ↓
+                                             [vps-bootstrap.sh] [vps-install.sh]
+                                             (SSH key auth)     (Docker + Git + UFW)
+```
 
-## Script
+## Scripts
 
-Run the `server.sp1` script to create the `ubuntu-template` base instance.
+| Script | Purpose |
+|---|---|
+| `server.ps1` | Creates and configures the base VirtualBox VM |
+| `init.sh` | Prepares the Ubuntu install for cloning (updates, tools, cleanup) |
+| `vps-provision.sh` | Orchestrates full provisioning of a cloned VM |
+| `vps-bootstrap.sh` | Injects your SSH key and disables password auth |
+| `vps-install.sh` | Installs Docker, Git, UFW rules on the cloned VM |
 
-Replace [REPLACE-YOUR-NETWORK-INTERFACE] with the name of your real network using this command:
+---
+
+## Step 1 — Install VirtualBox
+
+Download and install VirtualBox: https://www.virtualbox.org/wiki/Downloads
+
+---
+
+## Step 2 — Create the Base VM
+
+Find your network interface name:
 
 ```sh
 VBoxManage list bridgedifs
 ```
 
-Ejecuta la vm para instalar ubuntu server:
+Edit `server.ps1` and replace `[REPLACE-WITH-YOUR-NETWORK-INTERFACE]` with the name from the output above, then run it:
+
+```powershell
+.\server.ps1
+```
+
+---
+
+## Step 3 — Install Ubuntu Server
+
+Boot the VM and follow the Ubuntu installer:
 
 ```sh
 VBoxManage startvm "ubuntu-template" --type gui
 ```
 
-Opciones a tomar en cuenta en el setup inicial:
-- DHCP
-- usuario: ubuntu / password: ubuntu
-- Instala OpenSSH server de la lista de herramientas
+Key settings during installation:
+- Network: **DHCP**
+- Credentials: `ubuntu` / `ubuntu`
+- Enable **OpenSSH server** from the featured snaps list
 
-
-Note: read the script before run to update the values to your needs.
-
-Retira el ISO virtual de la vm:
+After installation, eject the virtual ISO:
 
 ```sh
 VBoxManage storageattach "ubuntu-template" --storagectl "SATA" --port 1 --device 0 --type dvddrive --medium none
 ```
 
-## Ubuntu
+---
 
-Run or mount the `init.sh` script to update, upgrade and install the base tools to prepare the base instance.
+## Step 4 — Initialize the Base Image
 
-Luego crea un `snapshot`, el cual servira como instancia para clonar:
-
-```sh
-VBoxManage snapshot "ubuntu-template" take "clean-install" --description "Golden image: Ubuntu Server 24 + SSH + user + base tools"
-```
-
-Luego cada instancia nueva es un clon del snapshot:
-
-```sh
-VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-dev" --register
-```
-
-Inicia la instancia en modo headless
+SSH into the VM and run `init.sh`. This script:
+- Updates and upgrades the system
+- Installs base tools (`curl`, `vim`, `htop`, etc.)
+- Enables UFW and allows SSH
+- Clears SSH host keys, machine-id, and network state so clones get unique identities
+- Clears apt cache, logs, and shell history
 
 ```sh
-VBoxManage startvm "vps-dev" --type headless
+# Copy and run on the VM
+scp init.sh ubuntu@<VM_IP>:~/
+ssh ubuntu@<VM_IP> "bash ~/init.sh"
 ```
 
-El flujo habitual para cada clon y dejar el vps listo para produccion es:
+---
+
+## Step 5 — Take a Golden Snapshot
 
 ```sh
-VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-prod" --register
-VBoxManage startvm "vps-prod" --type headless
+VBoxManage snapshot "ubuntu-template" take "clean-install" \
+  --description "Golden image: Ubuntu Server 24 + SSH + user + base tools"
 ```
 
-Lugo de hacer el clon, solo hay que provisionar el vps con las herramientas a usar:
+This snapshot is the base for every future clone.
+
+---
+
+## Step 6 — Clone and Provision
+
+Every new instance is a linked clone of the snapshot. The `vps-provision.sh` script handles the full flow automatically:
 
 ```sh
 ./vps-provision.sh <IP> <user>
 ```
+
+It runs in order:
+1. **`vps-bootstrap.sh`** — copies your public key (`~/.ssh/id_ed25519.pub`) and disables password authentication
+2. **`vps-install.sh`** — installs Docker Engine, Docker Compose plugin, Git, and configures UFW (ports 22, 80, 443)
+
+### Creating a new clone manually
+
+```sh
+VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-prod" --register
+VBoxManage startvm "vps-prod" --type headless
+./vps-provision.sh <IP> <user>
+```
+
+After provisioning, log out and back in so Docker group membership takes effect.
+
+---
+
+## Notes
+
+- The `vps-install.sh` script will prompt whether to install **Fail2Ban** for brute-force protection.
+- `vps-bootstrap.sh` accepts a third argument for a custom public key path: `./vps-bootstrap.sh <ip> <user> ~/.ssh/custom.pub`
+- All clones get fresh SSH host keys and a unique machine-id on first boot, avoiding DHCP/systemd conflicts.
