@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # vps-install.sh
-# Convierte un VPS limpio (Layer 1) en un Docker Host (Layer 2)
+# Converts a clean VPS (Layer 1) into a Docker host (Layer 2)
 
 set -euo pipefail
 
-echo ">> Actualizando sistema"
+echo ">> Updating system"
 sudo apt update && sudo apt upgrade -y
 
-echo ">> Instalando dependencias para el repo de Docker"
+echo ">> Installing Docker repo dependencies"
 sudo apt install -y ca-certificates curl gnupg
 
-echo ">> Agregando GPG key y repo oficial de Docker"
+echo ">> Adding Docker GPG key and official repo"
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
@@ -22,31 +22,31 @@ echo \
 
 sudo apt update
 
-echo ">> Instalando Docker Engine + Compose plugin"
+echo ">> Installing Docker Engine + Compose plugin"
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-echo ">> Agregando usuario actual al grupo docker"
+echo ">> Adding current user to the docker group"
 sudo usermod -aG docker "$USER"
 
-echo ">> Instalando Git"
+echo ">> Installing Git"
 sudo apt install -y git
 
-echo ">> Configurando UFW para Docker Host"
+echo ">> Configuring UFW for Docker host"
 sudo ufw allow OpenSSH
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw --force enable
 
-read -rp ">> ¿Instalar Fail2Ban? (y/n) " INSTALL_F2B
+read -rp ">> Install Fail2Ban? (y/n) " INSTALL_F2B
 if [[ "$INSTALL_F2B" == "y" ]]; then
   sudo apt install -y fail2ban
   sudo systemctl enable --now fail2ban
 fi
 
-echo ">> Creando estructura /opt/app-auth"
+echo ">> Creating /opt/app-auth directory"
 sudo mkdir -p /opt/app-auth
 sudo chown "$USER":"$USER" /opt/app-auth
 
-echo ">> Provisioning completo. Cierra sesión y vuelve a entrar para usar Docker sin sudo."
+echo ">> Provisioning complete. Log out and back in to use Docker without sudo."
 docker --version
 docker compose version

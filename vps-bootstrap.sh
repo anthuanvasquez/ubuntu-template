@@ -8,18 +8,18 @@ VPS_IP="$1"
 VPS_USER="${2:-deploy}"
 PUBKEY_PATH="${3:-$HOME/.ssh/id_ed25519.pub}"
 
-echo ">> Inyectando clave SSH en ${VPS_USER}@${VPS_IP}"
+echo ">> Injecting SSH key into ${VPS_USER}@${VPS_IP}"
 
-# Copia la clave pública (pedirá password una única vez)
+# Copy the public key (will prompt for password once)
 ssh-copy-id -i "${PUBKEY_PATH}" "${VPS_USER}@${VPS_IP}"
 
-echo ">> Verificando login sin password..."
+echo ">> Verifying passwordless login..."
 ssh -o BatchMode=yes -o ConnectTimeout=5 "${VPS_USER}@${VPS_IP}" "echo OK" || {
-  echo "Fallo el login con clave. Abortando antes de deshabilitar password auth."
+  echo "Key login failed. Aborting before disabling password auth."
   exit 1
 }
 
-echo ">> Deshabilitando autenticación por password"
+echo ">> Disabling password authentication"
 ssh "${VPS_USER}@${VPS_IP}" bash -s <<'EOF'
 sudo sed -i \
   -e 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' \
@@ -28,4 +28,4 @@ sudo sed -i \
 sudo systemctl restart ssh
 EOF
 
-echo ">> Listo. ${VPS_IP} ahora solo acepta login por clave."
+echo ">> Done. ${VPS_IP} now only accepts key-based login."

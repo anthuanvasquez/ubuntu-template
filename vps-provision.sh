@@ -7,8 +7,8 @@ VPS_USER="${2:-deploy}"
 
 ./vps-bootstrap.sh "$VPS_IP" "$VPS_USER"
 
-echo ">> Copiando vps-install.sh a la VM"
+echo ">> Copying vps-install.sh to the VM"
 scp vps-install.sh "${VPS_USER}@${VPS_IP}:~/vps-install.sh"
 
-echo ">> Ejecutando provisioning remoto"
+echo ">> Running remote provisioning"
 ssh "${VPS_USER}@${VPS_IP}" "chmod +x vps-install.sh && ./vps-install.sh"

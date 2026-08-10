@@ -13,18 +13,18 @@ sudo apt autoremove -y
 sudo ufw allow OpenSSH
 sudo ufw enable
 
-# Limpiar host keys SSH: cada VM clonada debe generar las suyas propias
+# Clear SSH host keys: each cloned VM must generate its own
 sudo rm -f /etc/ssh/ssh_host_*
 
-# Limpiar machine-id (si no, todos los clones comparten el mismo ID -> problemas con DHCP/systemd)
+# Clear machine-id (otherwise all clones share the same ID → DHCP/systemd conflicts)
 sudo truncate -s 0 /etc/machine-id
 sudo rm -f /var/lib/dbus/machine-id
 sudo ln -s /etc/machine-id /var/lib/dbus/machine-id
 
-# Limpiar historial de red persistente
+# Clear persistent network config
 sudo rm -f /etc/netplan/50-cloud-init.yaml 2>/dev/null
 
-# Limpiar logs y caché de apt
+# Clear apt cache and logs
 sudo apt clean
 sudo rm -rf /var/log/*.log /var/log/*/*.log
 history -c && history -w
