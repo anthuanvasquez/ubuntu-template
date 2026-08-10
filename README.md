@@ -54,6 +54,11 @@ Edit `server.ps1` and replace `[REPLACE-WITH-YOUR-NETWORK-INTERFACE]` with the n
 
 The script creates the VM, attaches the VDI disk, and mounts the ISO. The VDI filename matches the `-Name` value.
 
+> **Windows 11 note:** Script execution is disabled by default. Run this once in PowerShell to allow it for your user:
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+
 ---
 
 ## Step 3 — Install Ubuntu Server
