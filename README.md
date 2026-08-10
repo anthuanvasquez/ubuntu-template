@@ -92,6 +92,8 @@ scp init.sh ubuntu@<VM_IP>:~/
 ssh ubuntu@<VM_IP> "bash ~/init.sh"
 ```
 
+> **Why scp and not a shared folder?** VirtualBox shared folders require Guest Additions installed inside the guest, which adds ~200MB to the base image and a manual setup step. `scp` works out of the box as soon as OpenSSH is enabled during installation.
+
 ---
 
 ## Step 5 — Take a Golden Snapshot
