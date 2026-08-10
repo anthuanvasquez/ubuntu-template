@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# bootstrap-ssh.sh
-# Use: ./bootstrap-ssh.sh <ip> <user> <path_to_public_key>
+# vps-bootstrap.sh
+# Use: ./vps-bootstrap.sh <ip> <user> <path_to_public_key>
 
 set -euo pipefail
 
