@@ -38,24 +38,35 @@ VBoxManage storageattach "ubuntu-template" --storagectl "SATA" --port 1 --device
 
 ## Ubuntu
 
-Run the `init.sh` script to update, upgrade and install the base tools to prepare the base instance.
+Run or mount the `init.sh` script to update, upgrade and install the base tools to prepare the base instance.
 
-Luego crea un snapshot, el cual servira como instancia para clonar:
+Luego crea un `snapshot`, el cual servira como instancia para clonar:
 
 ```sh
-VBoxManage snapshot "ubuntu-template" take "clean-install" --description "Golden image: Ubuntu 24.04 + SSH + user + base tools"
+VBoxManage snapshot "ubuntu-template" take "clean-install" --description "Golden image: Ubuntu Server 24 + SSH + user + base tools"
 ```
 
 Luego cada instancia nueva es un clon del snapshot:
 
 ```sh
 VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-dev" --register
-VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-staging" --register
-VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-prod" --register
 ```
 
 Inicia la instancia en modo headless
 
 ```sh
 VBoxManage startvm "vps-dev" --type headless
+```
+
+El flujo habitual para cada clon y dejar el vps listo para produccion es:
+
+```sh
+VBoxManage clonevm "ubuntu-template" --snapshot "clean-install" --options link --name "vps-prod" --register
+VBoxManage startvm "vps-prod" --type headless
+```
+
+Lugo de hacer el clon, solo hay que provisionar el vps con las herramientas a usar:
+
+```sh
+./vps-provision.sh <IP> <user>
 ```
