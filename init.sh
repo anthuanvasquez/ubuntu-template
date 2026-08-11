@@ -1,10 +1,13 @@
 #!/bin/bash
+set -euo pipefail
 
 #
 # This script is intended to be run on
 # a freshly installed Ubuntu server to
 # perform initial setup and cleanup tasks.
 #
+
+set -euo pipefail
 
 echo ">> [1/4] System update..."
 sudo apt update && sudo apt upgrade -y
