@@ -10,16 +10,32 @@ $ISO = "ubuntu-24.04.4-live-server-amd64.iso"
 $NetworkAdapter = "[REPLACE-WITH-YOUR-NETWORK-INTERFACE]"
 $UserVboxPath = "$env:USERPROFILE\VirtualBox VMs\$Name"
 
+# Guards: fail fast before creating any resources
+if ($NetworkAdapter -like "*REPLACE*") {
+    Write-Error "Set `$NetworkAdapter before running. Use: VBoxManage list bridgedifs"
+    exit 1
+}
+if (-not (Test-Path $ISO)) {
+    Write-Error "ISO not found: $ISO. Download it from https://ubuntu.com/download/server"
+    exit 1
+}
+
 # 1. Create and register the VM
 VBoxManage createvm --name "$Name" --ostype "Ubuntu_64" --register
 
 # 2. Configure hardware (2GB RAM, 2 CPUs, bridged network, boot from DVD first)
 VBoxManage modifyvm "$Name" `
-  --memory 2048 `
-  --cpus 2 `
+  --memory 4096 `
+  --cpus 4 `
   --nic1 bridged --bridgeadapter1 "$NetworkAdapter" `
   --graphicscontroller vmsvga `
-  --boot1 dvd --boot2 disk
+  --boot1 dvd `
+  --boot2 disk `
+  --ioapic on `
+  --firmware efi `
+  --nestedpaging on `
+  --vtxvpid on `
+  --paravirtprovider kvm
 
 # 3. Create virtual disk and mount storage
 VBoxManage createmedium disk --filename "$UserVboxPath\$Name.vdi" --size 20000 # 20GB disk size
