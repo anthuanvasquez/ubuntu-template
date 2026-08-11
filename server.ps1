@@ -1,8 +1,8 @@
 # Usage: .\server.ps1 [-Name "ubuntu-template"] [-Memory 2048] [-Cpus 2] [-DiskGB 20]
 param(
     [string]$Name   = "ubuntu-template",
-    [int]   $Memory = 2048,
-    [int]   $Cpus   = 2,
+    [int]   $Memory = 4096,
+    [int]   $Cpus   = 4,
     [int]   $DiskGB = 20
 )
 
