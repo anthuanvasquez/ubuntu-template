@@ -37,8 +37,10 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw --force enable
 
-read -rp ">> Install Fail2Ban? (y/n) " INSTALL_F2B
-if [[ "$INSTALL_F2B" == "y" ]]; then
+if [[ -z "${INSTALL_F2B:-}" ]] && [[ -t 0 ]]; then
+  read -rp ">> Install Fail2Ban? (y/n) " INSTALL_F2B
+fi
+if [[ "${INSTALL_F2B:-n}" == "y" ]]; then
   sudo apt install -y fail2ban
   sudo systemctl enable --now fail2ban
 fi
