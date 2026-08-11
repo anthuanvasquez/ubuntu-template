@@ -5,7 +5,7 @@
 set -euo pipefail
 
 VPS_IP="$1"
-VPS_USER="${2:-deploy}"
+VPS_USER="${2:-ubuntu}"
 PUBKEY_PATH="${3:-$HOME/.ssh/id_ed25519.pub}"
 
 echo ">> Injecting SSH key into ${VPS_USER}@${VPS_IP}"
