@@ -1,6 +1,9 @@
-# Usage: .\server.ps1 [-Name "ubuntu-template"]
+# Usage: .\server.ps1 [-Name "ubuntu-template"] [-Memory 2048] [-Cpus 2] [-DiskGB 20]
 param(
-    [string]$Name = "ubuntu-template"
+    [string]$Name   = "ubuntu-template",
+    [int]   $Memory = 2048,
+    [int]   $Cpus   = 2,
+    [int]   $DiskGB = 20
 )
 
 # Dependency: download the Ubuntu Server ISO and place it in this directory.
@@ -25,8 +28,8 @@ VBoxManage createvm --name "$Name" --ostype "Ubuntu_64" --register
 
 # 2. Configure hardware (2GB RAM, 2 CPUs, bridged network, boot from DVD first)
 VBoxManage modifyvm "$Name" `
-  --memory 4096 `
-  --cpus 4 `
+  --memory $Memory `
+  --cpus $Cpus `
   --nic1 bridged --bridgeadapter1 "$NetworkAdapter" `
   --graphicscontroller vmsvga `
   --boot1 dvd `
@@ -38,7 +41,7 @@ VBoxManage modifyvm "$Name" `
   --paravirtprovider kvm
 
 # 3. Create virtual disk and mount storage
-VBoxManage createmedium disk --filename "$UserVboxPath\$Name.vdi" --size 20000 # 20GB disk size
+VBoxManage createmedium disk --filename "$UserVboxPath\$Name.vdi" --size ($DiskGB * 1024) # disk size in MB
 
 VBoxManage storagectl "$Name" --name "SATA" --add sata --controller IntelAHCI
 VBoxManage storageattach "$Name" --storagectl "SATA" --port 0 --device 0 --type hdd --medium "$UserVboxPath\$Name.vdi"
