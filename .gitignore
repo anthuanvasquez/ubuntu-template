@@ -1,7 +1,8 @@
 *.iso
+*.vdi
 
 # windows files
 *.exe
-*.logß
+*.log
 .DS_Store
 .thumbs.db
